@@ -1,0 +1,182 @@
+name: Tool Versions Update Action - commit
+description: Update tools in your .tool-versions file through a commit
+branding:
+  icon: arrow-up-circle
+  color: blue
+
+inputs:
+  branch:
+    description: |
+      The branch to commit to.
+    required: false
+    default: ${{ github.head_ref }}
+  commit-message:
+    description: |
+      The message to use for commits.
+    required: false
+    default: |
+      Update {{updated-tools}}
+
+      Update {{updated-count}} tool(s): {{updated-tools}}
+      - Version(s) before: {{updated-old-versions}}
+      - Version(s) after:  {{updated-new-versions}}
+  install-tools:
+    description: |
+      Whether to install tools from the .tool-versions file. Plugins will always
+      be added.
+    required: false
+    default: true
+  max:
+    description: |
+      The maximum number of tools to update. 0 indicates no maximum.
+    required: false
+    default: 0
+  not:
+    description: |
+      A comma-separated list of tools that should NOT be updated.
+    required: false
+    default: ""
+  only:
+    description: |
+      A comma-separated list of tools that should be updated, ignoring others.
+    required: false
+    default: ""
+  plugins:
+    description: |
+      A newline-separated list of "plugin url" pairs that should be installed.
+      If omitted the default plugins will be available.
+    required: false
+    default: ""
+  signoff:
+    description: |
+      Add "Signed-off-by" line at the end of the commit message. See `--signoff`
+      in <https://git-scm.com/docs/git-commit> for more detail.
+    required: false
+    default: false
+  skip:
+    description: |
+      A newline-separated list of "tool version" pairs that should NOT be
+      updated to.
+    required: false
+    default: ""
+  token:
+    description: |
+      The $GITHUB_TOKEN or a repository scoped Personal Access Token (PAT).
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  commit-sha:
+    description: |
+      The SHA identifier of the created commit.
+    value: ${{ steps.create-commit.outputs.commit_hash }}
+  did-update:
+    description: |
+      true if at least one tool was updated, false otherwise.
+    value: ${{ steps.update.outputs.updated-count != '0' }}
+  updated-count:
+    description: |
+      The number of tools that were updated.
+    value: ${{ steps.update.outputs.updated-count }}
+  updated-new-versions:
+    description: |
+      A comma separated list of the new versions of updated tools.
+    value: ${{ steps.update.outputs.new-versions }}
+  updated-old-versions:
+    description: |
+      A comma separated list of the old versions of updated tools.
+    value: ${{ steps.update.outputs.old-versions }}
+  updated-tools:
+    description: |
+      A comma separated list of the names of the updated tools.
+    value: ${{ steps.update.outputs.updated-tools }}
+  updated-tools-table:
+    description: |
+      A markdown table showing the tool names with their old and new versions.
+    value: ${{ steps.update.outputs.updated-tools-table }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # pin@v5
+      with:
+        token: ${{ inputs.token }}
+        persist-credentials: true
+
+    - name: Setup asdf
+      uses: asdf-vm/actions/setup@b7bcd026f18772e44fe1026d729e1611cc435d47 # pin@v4
+    - name: Configure asdf plugins
+      if: ${{ inputs.plugins != '' }}
+      shell: bash
+      run: $GITHUB_ACTION_PATH/../bin/install-plugins.sh
+      env:
+        LIST: ${{ inputs.plugins }}
+    - name: Install asdf plugins
+      if: ${{ inputs.plugins == '' }}
+      uses: asdf-vm/actions/plugins-add@b7bcd026f18772e44fe1026d729e1611cc435d47 # pin@v4
+      with:
+        skip_install: true
+    - name: Install asdf tools
+      if: ${{ inputs.install-tools == 'true' }}
+      uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47 # pin@v4
+      with:
+        skip_install: true
+
+    - name: Look for updates
+      id: update
+      shell: bash
+      run: $GITHUB_ACTION_PATH/../bin/update.sh
+      env:
+        MAX: ${{ inputs.max }}
+        NOT: ${{ inputs.not }}
+        ONLY: ${{ inputs.only }}
+        SKIP: ${{ inputs.skip }}
+
+    - name: Commit message
+      id: commit-message
+      shell: bash
+      run: $GITHUB_ACTION_PATH/../bin/templating.sh
+      env:
+        TEXT: ${{ inputs.commit-message }}
+        UPDATED_COUNT: ${{ steps.update.outputs.updated-count }}
+        UPDATED_NEW_VERSIONS: ${{ steps.update.outputs.updated-new-versions }}
+        UPDATED_OLD_VERSIONS: ${{ steps.update.outputs.updated-old-versions }}
+        UPDATED_TOOLS: ${{ steps.update.outputs.updated-tools }}
+        UPDATED_TOOLS_TABLE: ${{ steps.update.outputs.updated-tools-table }}
+    - name: Branch name
+      id: branch
+      shell: bash
+      run: $GITHUB_ACTION_PATH/../bin/templating.sh
+      env:
+        TEXT: ${{ inputs.branch }}
+        UPDATED_COUNT: ${{ steps.update.outputs.updated-count }}
+        UPDATED_NEW_VERSIONS: ${{ steps.update.outputs.updated-new-versions }}
+        UPDATED_OLD_VERSIONS: ${{ steps.update.outputs.updated-old-versions }}
+        UPDATED_TOOLS: ${{ steps.update.outputs.updated-tools }}
+        UPDATED_TOOLS_TABLE: ${{ steps.update.outputs.updated-tools-table }}
+
+    - name: Commit options
+      id: commit-options
+      shell: bash
+      run: |
+        if [[ "${SIGNOFF}" == 'true' ]]; then
+          echo "value=--signoff" >>"${GITHUB_OUTPUT}"
+        fi
+      env:
+        SIGNOFF: ${{ inputs.signoff }}
+
+    - name: Create commit
+      if: ${{ steps.update.outputs.updated-count != '0' }}
+      id: create-commit
+      uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0 # pin@v6
+      with:
+        skip_dirty_check: false
+
+        # Branch
+        branch: ${{ steps.branch.outputs.value }}
+
+        # Commit
+        commit_message: ${{ steps.commit-message.outputs.value }}
+        commit_options: ${{ steps.commit-options.outputs.value }}
+        file_pattern: .tool-versions

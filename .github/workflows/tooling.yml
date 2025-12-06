@@ -1,0 +1,32 @@
+name: Tooling
+on:
+  schedule:
+    - cron: 0 4 * * *
+  workflow_dispatch: ~
+
+permissions: read-all
+
+jobs:
+  tooling:
+    name: Update
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # To push a commit
+      pull-requests: write # To open a Pull Request
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - name: Create token to create Pull Request
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
+        id: automation-token
+        with:
+          app-id: ${{ secrets.AUTOMATION_ID }}
+          private-key: ${{ secrets.AUTOMATION_PRIVATE_KEY }}
+      - name: Update tooling
+        uses: ./pr
+        with:
+          labels: dependencies
+          max: 2
+          token: ${{ steps.automation-token.outputs.token }}

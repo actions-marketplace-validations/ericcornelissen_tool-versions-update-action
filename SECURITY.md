@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+
 # Security Policy
 
 The maintainers of the _Tool Versions Update Action_ project take security
@@ -5,16 +7,22 @@ issues seriously. We appreciate your efforts to responsibly disclose your
 findings. Due to the non-funded and open-source nature of the project, we take a
 best-efforts approach when it comes to engaging with security reports.
 
+This document should be considered expired after 2026-01-01. If you are reading
+this after that date you should try to find an up-to-date version in the
+official source repository.
+
 ## Supported Versions
 
 The table below shows which versions of the project are currently supported
 with security updates.
 
-| Version | End-of-life                        |
-| ------: | :--------------------------------- |
-|   0.x.x | 2023-09-30 _or_ upon release 1.0.0 |
+| Version | End-of-life |
+| ------: | :---------- |
+|   2.x.x | -           |
+|   1.x.x | 2026-01-01  |
+|   0.x.x | 2024-01-15  |
 
-_This table only includes information on versions `<1.0.0`._
+_This table only includes information on versions `<3.0.0`._
 
 ## Reporting a Vulnerability
 
@@ -46,10 +54,20 @@ Try to include as many of the following items as possible in a security report:
 - The latest affected version
 - The earliest affected version
 - A suggested patch
-- An automated regression test
-- A fuzz input seed or test
 
 [cwe]: https://cwe.mitre.org/
+
+### Threat Model
+
+The action considers the GitHub Actions runner, Bash, `asdf`, any default and
+user-specified `asdf` plugins, and any third-party GitHub Action used to be
+trusted. All external inputs, including from the workflow and the target
+repository, are considered untrusted. Any violation of confidentiality,
+integrity, or availability is considered a security issue.
+
+The project considers the GitHub infrastructure and all project maintainers to
+be trusted. Any action that is performed on the repository by any other GitHub
+user is considered untrusted.
 
 ## Advisories
 

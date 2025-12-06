@@ -1,4 +1,4 @@
-# Check out yamllint at: https://github.com/adrienverge/yamllint
+# Configuration file for yamllint (https://github.com/adrienverge/yamllint)
 
 ignore-from-file:
   - .gitignore
@@ -6,6 +6,10 @@ yaml-files:
   - "*.yml"
 
 rules:
+  anchors:
+    forbid-duplicated-anchors: true
+    forbid-undeclared-aliases: true
+    forbid-unused-anchors: true
   braces:
     level: error
     forbid: true
@@ -42,6 +46,7 @@ rules:
   empty-values:
     level: error
     forbid-in-block-mappings: true
+    forbid-in-block-sequences: true
     forbid-in-flow-mappings: true
   hyphens:
     level: error
@@ -53,6 +58,7 @@ rules:
     check-multi-line-strings: false
   key-duplicates:
     level: error
+    forbid-duplicated-merge-keys: true
   key-ordering: disable
   line-length: disable
   new-line-at-end-of-file:
@@ -66,6 +72,7 @@ rules:
     forbid-explicit-octal: true
   quoted-strings:
     level: error
+    check-keys: true
     quote-type: double
     required: only-when-needed
     extra-required:

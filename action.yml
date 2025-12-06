@@ -5,41 +5,63 @@ branding:
   color: blue
 
 inputs:
-  token:
-    description: |
-      The $GITHUB_TOKEN or a repository scoped Personal Access Token (PAT).
-    required: false
-    default: ${{ github.token }}
   max:
     description: |
       The maximum number of tools to update. 0 indicates no maximum.
     required: false
     default: 0
+  not:
+    description: |
+      A comma-separated list of tools that should NOT be updated.
+    required: false
+    default: ""
+  only:
+    description: |
+      A comma-separated list of tools that should be updated, ignoring others.
+    required: false
+    default: ""
+  skip:
+    description: |
+      A newline-separated list of "tool version" pairs that should NOT be
+      updated to.
+    required: false
+    default: ""
+
+outputs:
+  did-update:
+    description: |
+      true if at least one tool was updated, false otherwise.
+    value: ${{ steps.update.outputs.updated-count != '0' }}
+  updated-count:
+    description: |
+      The number of tools that were updated.
+    value: ${{ steps.update.outputs.updated-count }}
+  updated-new-versions:
+    description: |
+      A comma separated list of the new versions of updated tools.
+    value: ${{ steps.update.outputs.new-versions }}
+  updated-old-versions:
+    description: |
+      A comma separated list of the old versions of updated tools.
+    value: ${{ steps.update.outputs.old-versions }}
+  updated-tools:
+    description: |
+      A comma separated list of the names of the updated tools.
+    value: ${{ steps.update.outputs.updated-tools }}
+  updated-tools-table:
+    description: |
+       A markdown table showing the tool names with their old and new versions.
+    value: ${{ steps.update.outputs.updated-tools-table }}
 
 runs:
   using: composite
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-    - name: Install asdf
-      uses: asdf-vm/actions/install@v2
     - name: Look for updates
+      id: update
       shell: bash
       run: $GITHUB_ACTION_PATH/bin/update.sh
       env:
         MAX: ${{ inputs.max }}
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ inputs.token }}
-
-        # Pull Request
-        title: Update `.tool-versions`
-        body: Bump tools in `.tool-versions`
-
-        # Branch
-        branch: tool-versions-updates
-
-        # Commit
-        commit-message: Update .tool-versions
-        add-paths: .tool-versions
+        NOT: ${{ inputs.not }}
+        ONLY: ${{ inputs.only }}
+        SKIP: ${{ inputs.skip }}

@@ -1,7 +1,9 @@
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+
 # Release Guidelines
 
 To release a new version of the _Tool Versions Update Action_ follow the steps
-found in this file (using v0.1.2 as an example):
+found in this file (using v2.3.4 as an example):
 
 1. Make sure that your local copy of the repository is up-to-date, sync:
 
@@ -16,24 +18,46 @@ found in this file (using v0.1.2 as an example):
    git clone git@github.com:ericcornelissen/tool-versions-update-action.git
    ```
 
-1. Update the version number in the `.version` file following [Semantic
-   Versioning]:
+1. Update the version number following [Semantic Versioning]:
 
-   ```diff
-   - 0.1.1
-   + 0.1.2
+   ```shell
+   ./script/version-bump.sh [major|minor|patch]
    ```
 
-1. Update all version numbers referenced in the `README.md` to match the value
-   in the `.version` file.
+   Or edit the `.version` file manually:
 
-1. Update the changelog by manually adding the following after the
-   `## [Unreleased]` line:
+   ```diff
+   - 2.3.3
+   + 2.3.4
+   ```
+
+1. Update the changelog:
+
+   ```shell
+   ./script/update-changelog.sh
+   ```
+
+   Or edit the `CHANGELOG.md` file manually. First, replace all instances of
+   `_No changes yet._` with `_Version bump only._`. Second, add the following
+   after the `## [Unreleased]` line, adjusting the version number for the
+   release:
 
    ```markdown
-   - _No changes yet_
 
-   ## [0.1.2] - YYYY-MM-DD
+   ### `tool-versions-update-action`
+
+   - _No changes yet._
+
+   ### `tool-versions-update-action/commit`
+
+   - _No changes yet._
+
+   ### `tool-versions-update-action/pr`
+
+   - _No changes yet._
+
+   ## [2.3.4] - YYYY-MM-DD
+
    ```
 
    The date should follow the year-month-day format where single-digit months
@@ -42,10 +66,10 @@ found in this file (using v0.1.2 as an example):
 1. Commit the changes to a new branch and push using:
 
    ```shell
-   git checkout -b release-$(sha1sum .version | awk '{print $1}')
-   git add .version CHANGELOG.md README.md
+   git checkout -b release-$(sha1sum .version | awk '{print $1}' | head -c 7)
+   git add .version CHANGELOG.md
    git commit --message "Version bump"
-   git push origin release-$(sha1sum .version | awk '{print $1}')
+   git push origin release-$(sha1sum .version | awk '{print $1}' | head -c 7)
    ```
 
 1. Create a Pull Request to merge the new branch into `main`.
@@ -71,21 +95,21 @@ found in this file (using v0.1.2 as an example):
    > complete the release process. If not, or only partially, continue following
    > the remaining steps.
 
-1. Update the `v0` branch to point to the same commit as the new tag:
+1. Update the `v2` branch to point to the same commit as the new tag:
 
    ```shell
-   git checkout v0
+   git checkout v2
    git merge main
    ```
 
-1. Push the `v0` branch:
+1. Push the `v2` branch:
 
    ```shell
-   git push origin v0
+   git push origin v2
    ```
 
 1. Create a [GitHub Release] for the [git tag] of the new release. The release
-   title should be "Release {_version_}" (e.g. "Release v0.1.2"). The release
+   title should be "Release {_version_}" (e.g. "Release v2.3.4"). The release
    text should be identical.
 
    Ensure the version is published to the [GitHub Marketplace] as well.

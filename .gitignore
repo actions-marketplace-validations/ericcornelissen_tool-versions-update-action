@@ -1,15 +1,18 @@
-# Ignore everything ...
+# Ignore file for git (https://git-scm.com/docs/gitignore)
+
 /*
-# except ...
+
+!/.version
 
 ## Build tooling
-!/Dockerfile
+!/Containerfile.dev
 !/Makefile
 
 ## Configuration
 !/.editorconfig
 !/.hadolint.yml
 !/.shellcheckrc
+!/.shellspec
 !/.tool-versions
 !/.yamllint.yml
 
@@ -26,18 +29,46 @@
 !/.gitignore
 
 ## GitHub Actions
-!/.version
 !/action.yml
+!/commit/
+/commit/**
+!/commit/action.yml
+!/commit/README.md
+!/pr/
+/pr/**
+!/pr/action.yml
+!/pr/README.md
 
 ## GitHub platform
 !/.github/
 /.github/**
+!/.github/codeql.yml
 !/.github/dependabot.yml
+!/.github/labeler.yml
 !/.github/workflows
 /.github/workflows/**
 !/.github/workflows/*.yml
 
 ## Source
 !/bin/
-bin/**
+/bin/**
 !/bin/*.sh
+!/lib/
+/lib/**
+!/lib/*.sh
+
+## Script
+!/script/
+/script/**
+!/script/*.sh
+
+## Test
+!/spec/
+/spec/**
+!/spec/bin/
+/spec/bin/**
+!/spec/bin/*_spec.sh
+!/spec/lib/
+/spec/lib/**
+!/spec/lib/*_spec.sh
+!/spec/spec_helper.sh

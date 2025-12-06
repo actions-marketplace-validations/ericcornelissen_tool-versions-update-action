@@ -1,38 +1,99 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Tool Versions Update Action
 
-A [GitHub Action] to automatically update the tools in your `.tool-versions`
-file.
+A collection of [GitHub Actions] to automatically update the tools in your
+`.tool-versions` file.
 
-This action uses [asdf] and various other GitHub Actions to try and update any
-tools defined in your project's `.tool-versions` and open a Pull Request to
-apply those updates to the project.
-
-## Early Development Notice
-
-This action is currently in early development and so you should expect breaking
-changes from one version to the next. When using this action it is advised to
-pin to an exact version or commit SHA.
-
-The first stable release (if reached) will be v1.0.0.
+The actions use [asdf] and various other GitHub Actions to try and update any
+tools defined in your project's `.tool-versions` and apply those updates to the
+project.
 
 ## Usage
 
 ```yml
-- uses: ericcornelissen/tool-versions-update-action@v0.1.1
+- uses: ericcornelissen/tool-versions-update-action@v2
   with:
-    # The $GITHUB_TOKEN or a repository scoped Personal Access Token (PAT).
-    # Default: $GITHUB_TOKEN
-    token: ${{ github.token }}
-
     # The maximum number of tools to update. 0 indicates no maximum.
+    #
     # Default: 0
-    max: 0
+    max: 2
+
+    # A comma-separated list of tools that should NOT be updated.
+    #
+    # Default: ""
+    not: actionlint,shfmt
+
+    # A comma-separated list of tools that should be updated, ignoring others.
+    #
+    # Default: ""
+    only: shellcheck
+
+    # A newline-separated list of "tool version" pairs that should NOT be
+    # updated to.
+    #
+    # Default: ""
+    skip: |
+      shfmt 3.6.0
+      yamllint 1.31.0
 ```
+
+### Batteries Included
+
+While the base action allows for more freedom, you can use one of this project's
+sub-actions to get up-and-running quickly with one-step automated tooling jobs.
+
+- [`tool-versions-update-action/commit`](./commit/README.md)
+- [`tool-versions-update-action/pr`](./pr/README.md)
+
+### Outputs
+
+The following outputs are made available:
+
+| Name                   | Description                                                             |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `did-update`           | `true` if at least one tool was updated, `false` otherwise              |
+| `updated-count`        | The number of tools that were updated                                   |
+| `updated-new-versions` | A comma separated list of the new versions of updated tools             |
+| `updated-old-versions` | A comma separated list of the old versions of updated tools             |
+| `updated-tools`        | A comma separated list of the names of the updated tools                |
+| `updated-tools-table`  | A markdown table showing the tool names with their old and new versions |
+
+For information on how to use outputs see the [GitHub Actions output docs].
+
+#### Example
+
+Consider a scenario where
+
+```ini
+# file: .tool-versions
+
+shellcheck 0.10.0          # latest=0.11.0
+shellspec 0.28.0           # latest=0.28.1
+shfmt 3.12.0               # latest=3.12.0
+```
+
+then the output values would look something like (depending on the configuration
+used):
+
+- `did-update`: `true`
+- `updated-count`: `2`
+- `updated-new-versions`: `0.11.0,0.28.1`
+- `updated-old-versions`: `0.10.0,0.28.0`
+- `updated-tools`: `shellcheck,shellspec`
+- `updated-tools-table`:
+
+  ```markdown
+  |Tool|Old Version|New Version|
+  |---|---|---|
+  |shellcheck|0.10.0|0.11.0|
+  |shellspec|0.28.0|0.28.1|
+  ```
 
 ### Full Example
 
-This example is for a workflow that can be triggered manually to create a Pull
-Request to update at most 2 tools defined in `.tool-versions` at the time.
+This example is for a workflow that can be triggered manually to log available
+updates for at most 2 tools defined in `.tool-versions` at the time.
 
 ```yml
 name: Tooling
@@ -45,45 +106,53 @@ jobs:
   tooling:
     name: Update tooling
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install asdf
+        uses: asdf-vm/actions/install@v2
+      # Optionally configure asdf plugins depending on your needs.
+      # - name: Configure asdf plugins
+      #   run: |
+      #     asdf plugin add example https://github.com/ericcornelissen/asdf-example
       - name: Update tooling
-        uses: ericcornelissen/tool-versions-update-action@v0.1.1
+        uses: ericcornelissen/tool-versions-update-action/commit@v2
+        id: tooling
         with:
           max: 2
+      - name: Log tooling changes
+        if: steps.tooling.outputs.did-update == 'true'
+        run: git diff .tool-versions
 ```
 
-## Security
+### Runners
 
-### Permissions
+This action is tested on the official [`ubuntu-22.04`] and [`ubuntu-24.04`]
+runner images. It is recommended to use one of these images when using this
+action.
 
-This action requires the following permissions:
+### Security
 
-```yml
-permissions:
-  contents: write # To push a commit
-  pull-requests: write # To open a Pull Request
-```
+#### Permissions
 
-### Network
+This action requires no permissions.
 
-This action requires network access to:
+#### Network
 
-```txt
-github.com:443
-objects.githubusercontent.com:443
-```
-
-in addition to any endpoints your asdf plugins use.
+This action requires network access to all endpoints your [asdf] plugins use.
 
 ## License
 
-All source code is licensed under the MIT license, see [LICENSE] for the full
-license text. The contents of documentation is licensed under [CC BY 4.0].
+All source code is licensed under the [MIT license], see [LICENSE] for the full
+license text. The contents of documentation is licensed under [CC BY 4.0], code
+snippets under the [MIT-0 license].
 
 [asdf]: https://asdf-vm.com/
 [cc by 4.0]: https://creativecommons.org/licenses/by/4.0/
-[github action]: https://github.com/features/actions
+[github actions]: https://github.com/features/actions
+[github actions output docs]: https://help.github.com/en/actions/reference/contexts-and-expression-syntax-for-github-actions#steps-context
 [license]: ./LICENSE
+[mit license]: https://opensource.org/license/mit/
+[mit-0 license]: https://opensource.org/license/mit-0/
+[`ubuntu-22.04`]: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
+[`ubuntu-24.04`]: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
