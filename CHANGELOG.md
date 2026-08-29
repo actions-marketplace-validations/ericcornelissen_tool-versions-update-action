@@ -16,12 +16,27 @@ Versioning].
 
 ### `tool-versions-update-action/commit`
 
-- Bump `actions/checkout` from v6.0.1 to v6.0.2.
+- Bump `actions/checkout` from v7.0.0 to v7.0.1.
 
 ### `tool-versions-update-action/pr`
 
-- Bump `actions/checkout` from v6.0.1 to v6.0.2.
-- Bump `peter-evans/create-pull-request` from v8.0.0 to v8.1.0.
+- Bump `actions/checkout` from v7.0.0 to v7.0.1.
+
+## [2.2.2] - 2026-06-29
+
+### `tool-versions-update-action`
+
+- _Version bump only._
+
+### `tool-versions-update-action/commit`
+
+- Bump `actions/checkout` from v6.0.1 to v7.0.0.
+- Bump `stefanzweifel/git-auto-commit-action` from v7.1.0 to v7.2.0.
+
+### `tool-versions-update-action/pr`
+
+- Bump `actions/checkout` from v6.0.1 to v7.0.0.
+- Bump `peter-evans/create-pull-request` from v8.0.0 to v8.1.1.
 
 ## [2.2.1] - 2025-12-24
 

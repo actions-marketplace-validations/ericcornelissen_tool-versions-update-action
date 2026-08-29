@@ -9,12 +9,14 @@
 !/Makefile
 
 ## Configuration
+!/.actionlint.yml
 !/.editorconfig
 !/.hadolint.yml
 !/.shellcheckrc
 !/.shellspec
 !/.tool-versions
 !/.yamllint.yml
+!/.zizmor.yml
 
 ## OSS documentation
 !/CHANGELOG.md
@@ -44,7 +46,6 @@
 /.github/**
 !/.github/codeql.yml
 !/.github/dependabot.yml
-!/.github/labeler.yml
 !/.github/workflows
 /.github/workflows/**
 !/.github/workflows/*.yml
